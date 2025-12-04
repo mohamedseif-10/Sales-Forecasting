@@ -1,0 +1,6 @@
+outs:
+- md5: 680d4222e65bad72d26586630b83646d.dir
+  size: 185502876
+  nfiles: 3
+  hash: md5
+  path: intermediate
