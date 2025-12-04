@@ -267,17 +267,20 @@ def feature_engineer_counters(data):
 
 def drop_un_needed_features(data):
     columns_to_drop = [
-        "Open", 
-        "Date", 
-        "HolidayDate", 
-        "ClosureDate", 
-        "OpenDate", 
-        "CompetitionOpenSinceYear", 
-        "CompetitionOpenSinceMonth", 
-        "Promo2SinceYear", 
-        "Promo2SinceWeek", 
-        "PromoInterval", 
-        "MonthStr"
+        "Open",
+        "Date",
+        "HolidayDate",
+        "ClosureDate",
+        "OpenDate",
+        "CompetitionOpenSinceYear",
+        "CompetitionOpenSinceMonth",
+        "Promo2SinceYear",
+        "Promo2SinceWeek",
+        "PromoInterval",
+        "MonthStr",
+        "DayOfWeek", 
+        "StateHoliday",
+        "Promo2SinceMonth",
     ]
     data = data.drop(columns=columns_to_drop, axis=1)
     return data
