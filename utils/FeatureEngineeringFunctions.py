@@ -74,7 +74,7 @@ def loadData(mode: Literal["train", "test"]) -> pd.DataFrame:
         "PromoInterval": "category",
     }
 
-    file_path = "../Data/intermediate/"
+    file_path = "../../Data/intermediate/"
     if mode == "train":
         file_path = file_path + "cleaned_training_data.csv"
         dtypes = data_types_train
