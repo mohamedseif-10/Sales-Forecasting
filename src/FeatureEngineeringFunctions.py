@@ -268,7 +268,6 @@ def feature_engineer_counters(data):
 def drop_un_needed_features(data):
     columns_to_drop = [
         "Open",
-        "Date",
         "HolidayDate",
         "ClosureDate",
         "OpenDate",
