@@ -284,10 +284,17 @@ def drop_un_needed_features(data):
     data = data.drop(columns=columns_to_drop, axis=1)
     return data
 
+
+def drop_un_needed_features_production(data):
+    columns_to_drop = ["DayOfWeek", "Date"]
+    data = data.drop(columns=columns_to_drop, axis=1)
+    return data
+
     # test_data.drop(columns=["Open", "Date"], axis=1, inplace=True)
     # data.drop(columns=["OpenDate", 'CompetitionOpenSinceYear', 'CompetitionOpenSinceMonth'], axis=1, inplace=True)
     # data.drop(["Promo2SinceYear", "Promo2SinceWeek", "PromoInterval", "MonthStr"],axis=1,inplace=True)
     # data.drop(["HolidayDate", "ClosureDate", "Date"], axis=1, inplace=True)
+
 
 def PrepareTest():
     """
