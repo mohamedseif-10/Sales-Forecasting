@@ -1,0 +1,157 @@
+import streamlit as st
+import pandas as pd
+from datetime import date
+from newPredictions_pipline import predict_sales, load_models
+import os
+import sys
+sys.path.append(os.path.abspath("../.."))
+sys.path.append(os.path.abspath(".."))
+
+
+st.set_page_config(page_title="Sales Forecasting", page_icon="📈")
+
+@st.cache_resource
+def init_application(model_name: str = "XGBoost"):
+    """
+    Loads models based on the selected model_name.
+    Caching ensures this runs only once per session/model type.
+    """
+    try:
+        load_models(model_name)
+        return True
+    except Exception as e:
+        return str(e)
+
+
+# Initialize immediately
+model_choice = "XGBoost"
+status = init_application(model_choice)
+
+if status != True:
+    st.error(f"Failed to load models: {status}")
+    st.stop()  # Stop execution if model fails
+
+st.title("Sales Forecasting 📈")
+st.info(f"Using Model: {model_choice}")
+
+
+model_choice = st.selectbox(
+    "Select Predictive Model",
+    options=["XGBoost", "LSTM"],
+    index=0,
+    help="Switch between the XGBoost and LSTM pipelines.",
+)
+
+try:
+    with st.spinner(f"Loading {model_choice} pipeline..."):
+        if status == True:
+            st.success(f"Using model: **{model_choice}**")
+        else:
+            st.error(f"error loading the model")
+except Exception as e:
+    st.error(f"Error loading model {model_choice}: {e}. Please check file paths.")
+
+
+store_id = st.number_input("Store ID", min_value=1, max_value=1115, step=1, value=1)
+
+st.subheader("Select Date")
+col1, col2, col3 = st.columns(3)
+with col1:
+    year = st.number_input("Year", min_value=2013, max_value=2015, step=1, value=2015)
+with col2:
+    month = st.number_input("Month", min_value=1, max_value=12, step=1, value=7)
+with col3:
+    day = st.number_input("Day", min_value=1, max_value=31, step=1, value=31)
+
+valid_date = None
+date_is_valid = True
+
+try:
+    valid_date = date(int(year), int(month), int(day))
+    # Validate full date range based on our dataset range
+    min_date = date(2013, 1, 1)
+    max_date = date(2015, 9, 17)
+
+    if not (min_date <= valid_date <= max_date):
+        st.error(f"Date must be between {min_date} and {max_date}")
+        date_is_valid = False
+except ValueError:
+    st.error("Invalid date combination (check day/month/year)")
+    date_is_valid = False
+
+st.markdown("---")
+st.caption(
+    "Scenarios for (What-If Analysis) for decision making Leave as 'Default' to use the actual values in real for the selected Store/Date."
+)
+
+col_a, col_b, col_c = st.columns(3)
+
+with col_a:
+    promo = st.selectbox(
+        "Promo Active?",
+        options=["Default", "Yes (1)", "No (0)"],
+        index=0,
+        key="promo_key",
+    )
+
+with col_b:
+    school_holiday = st.selectbox(
+        "School Holiday?",
+        options=["Default", "Yes (1)", "No (0)"],
+        index=0, 
+        key="holiday_key",)
+with col_c:
+    promo2 = st.selectbox(
+        "Promo2 Active?",
+        options=["Default", "Yes (1)", "No (0)"],
+        index=0,
+        key="promo2_key",
+        )
+    
+competition_distance = st.number_input(
+    "Competition Distance (meters)",
+    min_value=0.0,
+    step=10.0,
+    value=None,
+    format="%.2f",
+)
+
+
+if st.button("Predict Sales", type="primary"):
+    if date_is_valid:
+
+        date_str_formatted = valid_date.strftime("%Y-%m-%d")
+        with st.spinner(f"Calculating prediction using {model_choice}..."):
+            result = predict_sales(
+                store_id=int(store_id),
+                date_str=date_str_formatted,
+                scenario_promo=int(promo),
+                scenario_school_holiday=int(school_holiday),
+                scenario_distance=float(competition_distance),
+                scenario_promo2=int(promo2),
+            )
+
+        if isinstance(result, str) and "Error" in result:
+            st.error(result)
+        else:
+            st.success("Prediction Successful!")
+
+            st.metric(
+                label=f"Predicted Sales for Store {store_id} ({model_choice})",
+                value=f"${result:,.2f}",
+            )
+
+            st.write("📌 **Parameters Used:**")
+            st.json(
+                {
+                    "Store": store_id,
+                    "Date": date_str_formatted,
+                    "Model": model_choice,
+                    "Promo": promo,
+                    "SchoolHoliday": school_holiday,
+                    "CompetitionDistance": competition_distance,
+                    "Promo2": promo2,
+                }
+            )
+    else:
+        st.warning("Please fix the date errors above before submitting.")
