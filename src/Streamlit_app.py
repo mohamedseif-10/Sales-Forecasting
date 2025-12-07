@@ -80,34 +80,57 @@ except ValueError:
     date_is_valid = False
 
 st.markdown("---")
-st.caption(
-    "Scenarios for (What-If Analysis) for decision making Leave as 'Default' to use the actual values in real for the selected Store/Date."
-)
+st.subheader(
+    "Scenarios for (What-If Analysis)")
+st.caption("Leave it as 'Default' to use the actual values in real for selected Date/Store")
 
 col_a, col_b, col_c = st.columns(3)
 
 with col_a:
-    promo = st.selectbox(
+    promo_input = st.selectbox(
         "Promo Active?",
-        options=["Default", "Yes (1)", "No (0)"],
+        options=["Default", "Yes", "No"],
         index=0,
         key="promo_key",
     )
 
+if promo_input == "Default":
+    promo = None
+elif promo_input == "Yes":
+    promo = True
+else:
+    promo = False
+
 with col_b:
-    school_holiday = st.selectbox(
+    school_holiday_input = st.selectbox(
         "School Holiday?",
-        options=["Default", "Yes (1)", "No (0)"],
-        index=0, 
-        key="holiday_key",)
+        options=["Default", "Yes", "No"],
+        index=0,
+        key="holiday_key",
+    )
+
+if school_holiday_input == "Default":
+    school_holiday = None
+elif school_holiday_input == "Yes":
+    school_holiday = True
+else:
+    school_holiday = False
+
 with col_c:
-    promo2 = st.selectbox(
+    promo2_input = st.selectbox(
         "Promo2 Active?",
-        options=["Default", "Yes (1)", "No (0)"],
+        options=["Default", "Yes", "No"],
         index=0,
         key="promo2_key",
-        )
-    
+    )
+
+if promo2_input == "Default":
+    promo2 = None
+elif promo2_input == "Yes":
+    promo2 = True
+else:
+    promo2 = False
+
 competition_distance = st.number_input(
     "Competition Distance (meters)",
     min_value=0.0,
@@ -120,15 +143,31 @@ competition_distance = st.number_input(
 if st.button("Predict Sales", type="primary"):
     if date_is_valid:
 
+        optional_params = {}
+
+        if promo is not None:
+            optional_params['scenario_promo'] = int(promo)
+
+        if school_holiday is not None:
+            optional_params['scenario_school_holiday'] = int(school_holiday)
+
+        if promo2 is not None:
+            optional_params['scenario_promo2'] = int(promo2)
+
+        if competition_distance is not None:
+            optional_params['scenario_distance'] = float(competition_distance)
+
         date_str_formatted = valid_date.strftime("%Y-%m-%d")
         with st.spinner(f"Calculating prediction using {model_choice}..."):
             result = predict_sales(
                 store_id=int(store_id),
                 date_str=date_str_formatted,
-                scenario_promo=int(promo),
-                scenario_school_holiday=int(school_holiday),
-                scenario_distance=float(competition_distance),
-                scenario_promo2=int(promo2),
+                # scenario_promo=int(promo),
+                # scenario_school_holiday=int(school_holiday),
+                # scenario_distance=float(competition_distance),
+                # scenario_promo2=int(promo2),
+                # Optional Keyword Arguments (only non-None values are passed)
+                **optional_params,
             )
 
         if isinstance(result, str) and "Error" in result:
@@ -137,21 +176,9 @@ if st.button("Predict Sales", type="primary"):
             st.success("Prediction Successful!")
 
             st.metric(
-                label=f"Predicted Sales for Store {store_id} ({model_choice})",
+                label=f"Predicted Sales for Store {store_id})",
                 value=f"${result:,.2f}",
             )
 
-            st.write("📌 **Parameters Used:**")
-            st.json(
-                {
-                    "Store": store_id,
-                    "Date": date_str_formatted,
-                    "Model": model_choice,
-                    "Promo": promo,
-                    "SchoolHoliday": school_holiday,
-                    "CompetitionDistance": competition_distance,
-                    "Promo2": promo2,
-                }
-            )
     else:
         st.warning("Please fix the date errors above before submitting.")

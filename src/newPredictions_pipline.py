@@ -89,9 +89,10 @@ def predict_sales(
     final_promo2 = (
         scenario_promo2 if scenario_promo2 is not None else row_data["Promo2"]
     )
-    final_day_of_week = (
-        scenario_dayOfWeek if scenario_dayOfWeek is not None else row_data["DayOfWeek"]
-    )
+    # final_day_of_week = (
+    #     # scenario_dayOfWeek if scenario_dayOfWeek is not None else 
+    #     row_data["DayOfWeek"]
+    # )
 
     # 4. Construct the Single-Row DataFrame
     input_df = pd.DataFrame(
@@ -104,7 +105,7 @@ def predict_sales(
                 "SchoolHoliday": bool(final_school),
                 "CompetitionDistance": float(final_distance),
                 "Promo2": bool(final_promo2),
-                "DayOfWeek": int(final_day_of_week),
+                "DayOfWeek": row_data["DayOfWeek"],
                 # -- Fixed / Lookup Features --
                 "StoreType": row_data["StoreType"],
                 "Assortment": row_data["Assortment"],
