@@ -57,9 +57,8 @@ def predict_sales(
     scenario_promo: int = None,
     scenario_school_holiday: int = None,
     scenario_distance: float = None,
-    scenario_promo2: int = None,
-    scenario_dayOfWeek: int = None,
-):
+    scenario_promo2: int = None
+    ):
     """
     Predicts sales for a specific Store and Date.
     Allows 'What-If' analysis by overriding Promo, Distance, etc.for decision making.

@@ -286,7 +286,9 @@ def drop_un_needed_features(data):
 
 
 def drop_un_needed_features_production(data):
-    columns_to_drop = ["DayOfWeek", "Date"]
+    # columns_to_drop = ["DayOfWeek", "Date"]
+    columns_to_drop = ["Date"]
+
     data = data.drop(columns=columns_to_drop, axis=1)
     return data
 
