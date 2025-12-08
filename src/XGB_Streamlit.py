@@ -9,11 +9,11 @@ sys.path.append(os.path.abspath("../.."))
 sys.path.append(os.path.abspath(".."))
 
 
-st.set_page_config(page_title="Sales Forecasting", page_icon="📈")
+st.set_page_config(page_title="Sales Forecasting Using XGB", page_icon="📈")
 
 
 @st.cache_resource
-def init_application(model_name: str = "XGBoost"):
+def init_application(model_name: str = "XGBBoost"):
     """
     Loads models based on the selected model_name.
     Caching ensures this runs only once per session/model type.
@@ -31,18 +31,18 @@ status = init_application(model_choice)
 
 if status != True:
     st.error(f"Failed to load models: {status}")
-    st.stop()  # Stop execution if model fails
+    st.stop()
 
 st.title("Sales Forecasting 📈")
-st.info(f"Using Model: {model_choice}")
+# st.info(f"Using Model: {model_choice}")
 
 
-model_choice = st.selectbox(
-    "Select Predictive Model",
-    options=["XGBoost", "NN_MLP"],
-    index=0,
-    help="Switch between the XGBoost and NN_MLP pipelines.",
-)
+# model_choice = st.selectbox(
+#     "Select Predictive Model",
+#     options=["XGBoost", "XGBBoost"],
+#     index=0,
+#     help="Switch between the XGBoost and XGBBoost pipelines.",
+# )
 
 try:
     with st.spinner(f"Loading {model_choice} pipeline..."):

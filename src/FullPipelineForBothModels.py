@@ -17,6 +17,7 @@ sys.path.append(os.path.abspath(".."))
 
 LOOKUP_DF = None
 main_pipeline = None
+global MODEL
 
 
 def load_models(model: Literal["XGBoost", "NN_MLP"]):
@@ -77,9 +78,6 @@ def predict_sales(
     Predicts sales for a specific Store and Date.
     Allows 'What-If' analysis by overriding Promo, Distance, etc.for decision making.
     """
-
-    if LOOKUP_DF is None or (main_pipeline is None and MODEL is None):
-        return "Error: Model or Lookup Data not loaded."
 
     # Fetch Base Data from Lookup (The "Knowledge Base")
     try:
