@@ -1,14 +1,16 @@
 import streamlit as st
 import pandas as pd
 from datetime import date
-from newPredictions_pipline import predict_sales, load_models
+from FullPipelineForBothModels import predict_sales, load_models
 import os
 import sys
+
 sys.path.append(os.path.abspath("../.."))
 sys.path.append(os.path.abspath(".."))
 
 
 st.set_page_config(page_title="Sales Forecasting", page_icon="📈")
+
 
 @st.cache_resource
 def init_application(model_name: str = "XGBoost"):
@@ -80,9 +82,10 @@ except ValueError:
     date_is_valid = False
 
 st.markdown("---")
-st.subheader(
-    "Scenarios for (What-If Analysis)")
-st.caption("Leave it as 'Default' to use the actual values in real for selected Date/Store")
+st.subheader("Scenarios for (What-If Analysis)")
+st.caption(
+    "Leave it as 'Default' to use the actual values in real for selected Date/Store"
+)
 
 col_a, col_b, col_c = st.columns(3)
 
@@ -146,16 +149,16 @@ if st.button("Predict Sales", type="primary"):
         optional_params = {}
 
         if promo is not None:
-            optional_params['scenario_promo'] = int(promo)
+            optional_params["scenario_promo"] = int(promo)
 
         if school_holiday is not None:
-            optional_params['scenario_school_holiday'] = int(school_holiday)
+            optional_params["scenario_school_holiday"] = int(school_holiday)
 
         if promo2 is not None:
-            optional_params['scenario_promo2'] = int(promo2)
+            optional_params["scenario_promo2"] = int(promo2)
 
         if competition_distance is not None:
-            optional_params['scenario_distance'] = float(competition_distance)
+            optional_params["scenario_distance"] = float(competition_distance)
 
         date_str_formatted = valid_date.strftime("%Y-%m-%d")
         with st.spinner(f"Calculating prediction using {model_choice}..."):

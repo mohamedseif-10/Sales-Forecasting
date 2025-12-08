@@ -1,10 +1,16 @@
 import pandas as pd
 import numpy as np
 import joblib
+import tensorflow as tf
+
 from typing import Literal
-from FeatureEngineeringFunctions import (TransformDateFeature,drop_un_needed_features_production,)
+from FeatureEngineeringFunctions import (
+    TransformDateFeature,
+    drop_un_needed_features_production,
+)
 import os
 import sys
+
 sys.path.append(os.path.abspath("../.."))
 sys.path.append(os.path.abspath(".."))
 
@@ -14,13 +20,16 @@ main_pipeline = None
 
 
 def load_models(model: Literal["XGBoost", "NN_MLP"]):
-    global LOOKUP_DF, main_pipeline
+    global LOOKUP_DF, main_pipeline, model_path, processor, NN_model, MODEL
     PIPELINE_PATH = ""
 
     if model == "XGBoost":
         PIPELINE_PATH = "../Models/XGBoost_pipeline.pkl"
+        MODEL = "XGB"
     elif model == "NN_MLP":
-        PIPELINE_PATH = "../Models/NN_MLP.pkl"
+        model_path = "../Models/best_rossmann_model.keras"
+        PIPELINE_PATH = "../Models/NN_preprocessor.pkl"
+        MODEL = "NN"
 
     LOOKUP_PATH = "../Data/preprocessed/full_store_lookup.parquet"
 
@@ -35,9 +44,14 @@ def load_models(model: Literal["XGBoost", "NN_MLP"]):
         LOOKUP_DF = None
 
     try:
-        print(f"⏳ Loading {model} Pipeline...")
-        main_pipeline = joblib.load(PIPELINE_PATH)
-        print("Model Components Loaded and Pipeline Assembled.")
+        if model == "XGBoost":
+            print(f"⏳ Loading {model} Pipeline...")
+            main_pipeline = joblib.load(PIPELINE_PATH)
+            print("Model XGBoost Components Loaded and Pipeline Assembled.")
+        elif model == "NN_MLP":
+            NN_model = tf.keras.models.load_model(model_path)
+            processor = joblib.load(PIPELINE_PATH)
+
     except Exception as e:
         print(f"Error loading Pipeline: {e}")
         main_pipeline = None
@@ -57,14 +71,14 @@ def predict_sales(
     scenario_promo: int = None,
     scenario_school_holiday: int = None,
     scenario_distance: float = None,
-    scenario_promo2: int = None
-    ):
+    scenario_promo2: int = None,
+):
     """
     Predicts sales for a specific Store and Date.
     Allows 'What-If' analysis by overriding Promo, Distance, etc.for decision making.
     """
 
-    if LOOKUP_DF is None or main_pipeline is None:
+    if LOOKUP_DF is None or (main_pipeline is None and MODEL is None):
         return "Error: Model or Lookup Data not loaded."
 
     # Fetch Base Data from Lookup (The "Knowledge Base")
@@ -89,7 +103,7 @@ def predict_sales(
         scenario_promo2 if scenario_promo2 is not None else row_data["Promo2"]
     )
     # final_day_of_week = (
-    #     # scenario_dayOfWeek if scenario_dayOfWeek is not None else 
+    #     # scenario_dayOfWeek if scenario_dayOfWeek is not None else
     #     row_data["DayOfWeek"]
     # )
 
@@ -125,18 +139,12 @@ def predict_sales(
     # 5. Preprocess and Predict
     final_X = preprocess_user_input(input_df)
 
-    log_pred = main_pipeline.predict(final_X)
-    prediction = np.expm1(log_pred)[0]
+    if MODEL == "XGB":
+        log_pred = main_pipeline.predict(final_X)
+        prediction = np.expm1(log_pred)[0]
+    elif MODEL == "NN":
+        data_transformed = processor.transform(final_X)
+        prediction_logged = NN_model.predict(data_transformed)
+        prediction = np.expm1(prediction_logged)[0][0]
 
     return max(prediction, 0)
-
-
-# if __name__ == "__main__":
-#     load_models("XGBoost")
-
-#     if main_pipeline is not None and LOOKUP_DF is not None:
-#         print("\n--- Test 1: Historical Prediction (Train Data) ---")
-#         sales_a = predict_sales(store_id=1, date_str="2015-07-31")
-#         print(f"Store 1 on 2014-05-05 Sales Prediction: ${sales_a:,.2f}")
-#     else:
-#         print("Skipping prediction because loading failed.")
